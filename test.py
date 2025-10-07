@@ -13,21 +13,30 @@ for x in range(2, n):
     else:
         primes.append(x)
 
-for x in range(len(primes)-1):
-    a.append(math.log(primes[x])**2)
-    b.append(primes[x+1] - primes[x])
 
-# a1 = [i for i in range(len(b)) if 30<=b[i]<=35]
-# for x in a1:
-#     print(a[x], b[x])
+prime_nums = primes[:-1]
+next_primes = primes[1:]
+prime_gaps = [next_primes[i] - prime_nums[i] for i in range(len(prime_nums))]
+log_sq = [math.log(p) ** 2 for p in prime_nums]
+ratios = [prime_gaps[i] / log_sq[i] for i in range(len(prime_nums))]
 
-plt.figure(figsize=(10,10))
-plt.scatter(a, list(range(len(a))), s=6, alpha=0.6)
-plt.scatter(b, list(range(len(b))), s=6, alpha=0.6)
-plt.scatter(a, b, s=6, alpha=0.6)
-plt.xlabel("(log p_n)^2")
-plt.ylabel("Prime gap")
-plt.title("Prime gaps vs (log p_n)^2")
+df = pd.DataFrame({
+    'Prime': prime_nums,
+    'Next Prime': next_primes,
+    'Prime Gap': prime_gaps,
+    '(log p)^2': log_sq,
+    'Gap / (log p)^2': ratios
+})
+
+# df.to_csv("Cramer.csv", index=False)
+
+plt.figure(figsize=(8,6))
+plt.plot(df['Prime'], df['Gap / (log p)^2'], '.', alpha=0.6)
+plt.axhline(y=1, color='r', linestyle='--', label='y = 1')
+plt.xlabel("Prime (pₙ)")
+plt.ylabel("Gap / (log pₙ)²")
+plt.title("Ratio of Prime Gap to (log pₙ)²")
+plt.legend()
 plt.grid(True)
 plt.tight_layout()
 plt.show()
