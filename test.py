@@ -31,7 +31,8 @@ df = pd.DataFrame({
 # df.to_csv("Cramer.csv", index=False)
 
 plt.figure(figsize=(8,6))
-plt.plot(df['Prime'], df['Gap / (log p)^2'], '.', alpha=0.6)
+# plt.plot(df['Prime'], df['Gap / (log p)^2'], '.', alpha=0.6)
+plt.semilogx(df['Prime'], df['Gap / (log p)^2'], '.', alpha=0.6)
 plt.axhline(y=1, color='r', linestyle='--', label='y = 1')
 plt.xlabel("Prime (pₙ)")
 plt.ylabel("Gap / (log pₙ)²")
