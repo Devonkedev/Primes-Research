@@ -1,1 +1,4 @@
 .venv
+primes_list
+__pycache__
+primes_cache.txt

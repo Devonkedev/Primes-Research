@@ -5,10 +5,14 @@ from sympy import primerange
 import numpy as np
 from scipy.optimize import curve_fit
 from scipy.stats import pearsonr
+from parse_primes import parse_all_primes
 
-n_up = 10 ** 9
-n_down = 10 ** 6
-primes = list(primerange(n_down, n_up))
+primes = parse_all_primes('primes_list', num_files=25)
+
+# n_up = 10 ** 9
+# n_down = 10 ** 6
+# primes = list(primerange(n_down, n_up))
+# primes = [p for p in all_primes if n_down <= p < n_up]
 
 def non_consecutive_gaps(primes, k, save=True):
     p1 = primes[:-k]
