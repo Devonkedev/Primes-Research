@@ -7,36 +7,19 @@ from scipy.optimize import curve_fit
 from scipy.stats import pearsonr
 from parse_primes import parse_all_primes
 
-print("Loading primes...")
-primes_list = parse_all_primes('primes_list', num_files=25)
-print(f"Loaded {len(primes_list):,} primes")
-# Convert to numpy array once (more memory efficient)
-primes = np.array(primes_list, dtype=np.int64)
-del primes_list  # Free memory
-print("Converted to numpy array")
+primes = parse_all_primes('primes_list', num_files=25)
 
 # n_up = 10 ** 9
 # n_down = 10 ** 6
 # primes = list(primerange(n_down, n_up))
 # primes = [p for p in all_primes if n_down <= p < n_up]
 
-def non_consecutive_gaps(primes, k, save=True, max_samples=None):
-
+def non_consecutive_gaps(primes, k, save=True):
     p1 = primes[:-k]
     p2 = primes[k:]
-    
-    # Vectorized operations (much faster and more memory efficient)
-    gaps = p2 - p1
-    log_sq = np.log(p1.astype(np.float64)) ** 2
-    ratio = gaps / log_sq
-    
-    if max_samples and len(p1) > max_samples:
-        indices = np.linspace(0, len(p1) - 1, max_samples, dtype=np.int64)
-        p1 = p1[indices]
-        p2 = p2[indices]
-        gaps = gaps[indices]
-        log_sq = log_sq[indices]
-        ratio = ratio[indices]
+    gaps = [p2[i] - p1[i] for i in range(len(p1))]
+    log_sq = [math.log(x)**2 for x in p1]
+    ratio = [gaps[i] / log_sq[i] for i in range(len(gaps))]
 
     if save:
         df = pd.DataFrame({
@@ -46,6 +29,7 @@ def non_consecutive_gaps(primes, k, save=True, max_samples=None):
             '(log p)^2': log_sq,
             'Gap / (log p)^2': ratio
         })
+
         # df.to_csv("Cramer.csv", index=False)
     
     return pd.DataFrame({
@@ -55,20 +39,7 @@ def non_consecutive_gaps(primes, k, save=True, max_samples=None):
 
 # k_values = [i for i in range(1, 78000, 10000)]
 k_values = [10, 100, 1000, 10000]
-
-# Process one k at a time to avoid memory issues
-# Downsample to 1M points for curve fitting (sufficient for statistical analysis)
-print(f"\nComputing non-consecutive gaps for k values: {k_values}")
-non_consec_results = {}
-for k in k_values:
-    print(f"  Processing k={k}...")
-    # Use max_samples=1_000_000 for curve fitting (enough data, less memory)
-    non_consec_results[k] = non_consecutive_gaps(
-        primes, k, 
-        save=(k == k_values[0]),  # Only save CSV for first k
-        max_samples=1_000_000  # Downsample for memory efficiency
-    )
-print("Done computing gaps\n")
+non_consec_results = {k: non_consecutive_gaps(primes, k) for k in k_values}
 
 
 # def log_law(x, A, B):
@@ -107,22 +78,14 @@ def log_series(x, A, B, C):
 
 plt.figure(figsize=(10,7))
 
-print("Fitting curves...")
 for k in k_values:
-    print(f"  Fitting k={k}...")
     df_k = non_consec_results[k]
     x = df_k["Prime"].values
     y = df_k[f"Gap_k / (log p)^2"].values
 
-    mask = (x > 50) & (y > 0) & np.isfinite(y)
+    mask = (x > 50) & (y > 0)
     x = x[mask]
     y = y[mask]
-    
-    # Further downsample for curve fitting if still too large
-    if len(x) > 100_000:
-        indices = np.linspace(0, len(x) - 1, 100_000, dtype=np.int64)
-        x = x[indices]
-        y = y[indices]
 
     popt, _ = curve_fit(log_series, x, y, maxfev=10000)
     A, B, C = popt
