@@ -177,7 +177,7 @@ def main():
     plt.bar(gaps_index + width / 2,
             freqs_large.values,
             width=width,
-            label="Large dataset (all primes)",
+            label="Large dataset (first 25000000 primes)",
             alpha=0.7)
 
     plt.yscale("log")
